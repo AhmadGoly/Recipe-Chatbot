@@ -207,6 +207,31 @@ body {
     white-space: pre-wrap;
 }
 
+.message .bubble p {
+    margin: 0 0 8px;
+}
+
+.message .bubble p:last-child {
+    margin-bottom: 0;
+}
+
+.message .bubble ul,
+.message .bubble ol {
+    margin: 4px 0;
+    padding-right: 20px;
+}
+
+.message .bubble code {
+    background: rgba(0,0,0,0.06);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.88rem;
+}
+
+.message .bubble strong {
+    font-weight: 600;
+}
+
 .message.user .bubble {
     background: var(--user-bubble);
     border-top-right: 4px solid var(--primary-light);
@@ -396,6 +421,49 @@ body {
 
 .recipe-card .select-btn:hover {
     background: var(--primary-dark);
+}
+
+/* ===== Selected Recipe Banner ===== */
+.recipe-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border-bottom: 1px solid #a5d6a7;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-100%); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.banner-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.banner-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.banner-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--primary-dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.banner-details {
+    font-size: 0.78rem;
+    color: var(--success);
+    font-weight: 500;
 }
 
 /* ===== Input Area ===== */
