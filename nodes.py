@@ -21,12 +21,20 @@ class Nodes:
         return "suggest_recipes"
 
     def suggest_recipes(self, state: AppState):
-        result: ChatResponse = self.llm.invoke(
-            [
-                SystemMessage(content=SUGGEST_RECIPES_PROMPT),
-                *state["all_messages"],
-            ]
-        )
+        try:
+            result: ChatResponse = self.llm.invoke(
+                [
+                    SystemMessage(content=SUGGEST_RECIPES_PROMPT),
+                    *state["all_messages"],
+                ]
+            )
+        except Exception:
+            return {
+                "last_response": "خطایی رخ داد. لطفاً دوباره تلاش کنید.",
+                "all_messages": [
+                    AIMessage(content="LLM error occurred in suggest_recipes.")
+                ],
+            }
 
         return {
             "ingredients": result.ingredients,
@@ -55,13 +63,21 @@ Missing ingredients:
 Only continue helping with THIS recipe.
 """
 
-        result: ChatResponse = self.llm.invoke(
-            [
-                SystemMessage(content=CONTINUE_RECIPE_PROMPT),
-                SystemMessage(content=recipe_context),
-                *state["all_messages"],
-            ]
-        )
+        try:
+            result: ChatResponse = self.llm.invoke(
+                [
+                    SystemMessage(content=CONTINUE_RECIPE_PROMPT),
+                    SystemMessage(content=recipe_context),
+                    *state["all_messages"],
+                ]
+            )
+        except Exception:
+            return {
+                "last_response": "خطایی رخ داد. لطفاً دوباره تلاش کنید.",
+                "all_messages": [
+                    AIMessage(content="LLM error occurred in continue_recipe.")
+                ],
+            }
 
         selected_recipe = result.recipes[0] if result.recipes else recipe
 

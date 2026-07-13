@@ -17,17 +17,17 @@ Your tasks are:
 
 2. Merge duplicate ingredients.
 
-3. Ingredient names must always be written in English.
+3. Ingredient names must always be written in Persian (Farsi).
 
 4. Suggest the best Persian recipes that match the available ingredients.
 
 5. Prefer recipes that require the fewest additional ingredients.
 
 6. For every recipe provide:
-   - recipe name
-   - available ingredients
-   - missing ingredients
-   - short explanation
+   - recipe name in Persian
+   - available ingredients in Persian
+   - missing ingredients in Persian
+   - short explanation in Persian
 
 7. Never invent ingredients that are not visible or mentioned.
 

@@ -1,6 +1,9 @@
 import base64
+import time
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
@@ -29,7 +32,17 @@ graph = build_graph(llm)
 
 app = FastAPI()
 
-sessions: dict[str, AppState] = {}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+SESSION_TTL = 3600  # 1 hour
+
+sessions: dict[str, tuple[AppState, float]] = {}
 
 
 def create_state() -> AppState:
@@ -44,10 +57,17 @@ def create_state() -> AppState:
 
 
 def get_state(username: str) -> AppState:
-    if username not in sessions:
-        sessions[username] = create_state()
+    now = time.time()
 
-    return sessions[username]
+    if username in sessions:
+        state, ts = sessions[username]
+        if now - ts > SESSION_TTL:
+            del sessions[username]
+        else:
+            return state
+
+    sessions[username] = (create_state(), now)
+    return sessions[username][0]
 
 
 def build_content(
@@ -109,7 +129,7 @@ async def chat(
 
     if image is not None:
         image_bytes = await image.read()
-        image_content_type = image.content_type
+        image_content_type = image.content_type or "image/jpeg"
 
     content = build_content(
         message=message,
@@ -136,10 +156,9 @@ async def chat(
         },
     )
 
-    state.clear()
-    state.update(new_state)
+    sessions[username] = (new_state, time.time())
 
-    return build_response(state)
+    return build_response(new_state)
 
 
 @app.post(
@@ -173,15 +192,17 @@ async def select_recipe(
 
     selected_recipe = recipes[request.recipe_index]
 
-    HumanMessage(
-    content=f"""
-        من این دستور غذا را انتخاب کردم:
+    state["all_messages"].append(
+        HumanMessage(
+            content=f"""
+من این دستور غذا را انتخاب کردم:
 
-        {selected_recipe.model_dump_json(indent=2)}
+{selected_recipe.model_dump_json(indent=2)}
 
-        از این به بعد فقط برای آماده کردن همین دستور غذا به من کمک کن.
-        """
+از این به بعد فقط برای آماده کردن همین دستور غذا به من کمک کن.
+"""
         )
+    )
 
     state["selected_recipe"] = selected_recipe
     state["recipe_locked"] = True
@@ -205,6 +226,10 @@ async def reset(
     return ResetConversationResponse(
         success=True,
     )
+
+
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
 
 if __name__ == "__main__":
     import uvicorn

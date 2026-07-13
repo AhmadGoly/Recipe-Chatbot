@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class Ingredient(BaseModel):
-    name: str = Field(description="Ingredient name in English")
+    name: str = Field(description="Ingredient name in Persian (Farsi)")
     count: int = Field(description="Detected quantity")
 
 

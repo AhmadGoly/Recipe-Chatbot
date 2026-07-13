@@ -1,0 +1,532 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #2e7d32;
+    --primary-light: #4caf50;
+    --primary-dark: #1b5e20;
+    --user-bubble: #dcf8c6;
+    --bot-bubble: #ffffff;
+    --bg: #e5ddd5;
+    --bg-chat: #efeae2;
+    --text: #1a1a1a;
+    --text-light: #667781;
+    --border: #d1d7db;
+    --danger: #c62828;
+    --danger-light: #ffcdd2;
+    --success: #2e7d32;
+    --success-light: #c8e6c9;
+    --shadow: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
+    --radius: 12px;
+    --radius-sm: 8px;
+}
+
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ===== Login Screen ===== */
+.login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+}
+
+.login-card {
+    background: white;
+    padding: 48px 40px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    width: 380px;
+    max-width: 90vw;
+}
+
+.login-card h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--primary-dark);
+}
+
+.login-card p {
+    color: var(--text-light);
+    margin-bottom: 28px;
+    font-size: 0.95rem;
+}
+
+.login-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.login-card input {
+    font-family: 'Vazirmatn', sans-serif;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    text-align: right;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.login-card input:focus {
+    border-color: var(--primary);
+}
+
+.login-card button {
+    font-family: 'Vazirmatn', sans-serif;
+    padding: 12px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.login-card button:hover {
+    background: var(--primary-dark);
+}
+
+/* ===== App Layout ===== */
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--bg-chat);
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+}
+
+/* ===== Header ===== */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--primary);
+    color: white;
+    box-shadow: var(--shadow);
+    z-index: 10;
+}
+
+.header h1 {
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.reset-btn {
+    font-family: 'Vazirmatn', sans-serif;
+    padding: 6px 16px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.reset-btn:hover {
+    background: rgba(255,255,255,0.35);
+}
+
+/* ===== Chat Area ===== */
+.chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.welcome-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
+
+.welcome-message p {
+    background: white;
+    display: inline-block;
+    padding: 16px 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+/* ===== Message Bubbles ===== */
+.message {
+    display: flex;
+    flex-direction: column;
+    max-width: 75%;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message.user {
+    align-self: flex-start;
+}
+
+.message.bot {
+    align-self: flex-end;
+}
+
+.message .bubble {
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    line-height: 1.7;
+    font-size: 0.95rem;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.message.user .bubble {
+    background: var(--user-bubble);
+    border-top-right: 4px solid var(--primary-light);
+}
+
+.message.bot .bubble {
+    background: var(--bot-bubble);
+    box-shadow: var(--shadow);
+    border-top-left: 4px solid var(--primary);
+}
+
+.message .time {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    margin-top: 4px;
+    padding: 0 4px;
+}
+
+.message.user .time {
+    text-align: right;
+}
+
+.message.bot .time {
+    text-align: left;
+}
+
+/* ===== Image in Message ===== */
+.message-image {
+    max-width: 260px;
+    max-height: 260px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.message-image:hover {
+    transform: scale(1.02);
+}
+
+/* ===== Ingredients Pills ===== */
+.ingredients-section {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: white;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+}
+
+.ingredients-section h4 {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.pill.ingredient {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.pill.available {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.pill.missing {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+/* ===== Typing Indicator ===== */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 14px 18px;
+    background: var(--bot-bubble);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: fit-content;
+    margin-right: auto;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: #aaa;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) { animation-delay: 0s; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+}
+
+/* ===== Recipe Cards ===== */
+.recipes-container {
+    padding: 0 20px 16px;
+}
+
+.recipes-container h3 {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+.recipe-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeIn 0.4s ease;
+    border: 2px solid transparent;
+}
+
+.recipe-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
+}
+
+.recipe-card .recipe-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 10px;
+}
+
+.recipe-card .recipe-explanation {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-bottom: 14px;
+    line-height: 1.6;
+}
+
+.recipe-card .recipe-section {
+    margin-bottom: 10px;
+}
+
+.recipe-card .recipe-section h5 {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.recipe-card .select-btn {
+    font-family: 'Vazirmatn', sans-serif;
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 6px;
+}
+
+.recipe-card .select-btn:hover {
+    background: var(--primary-dark);
+}
+
+/* ===== Input Area ===== */
+.input-area {
+    padding: 10px 16px 16px;
+    background: var(--bg-chat);
+}
+
+.image-preview {
+    position: relative;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
+.image-preview img {
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow);
+}
+
+.remove-image {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: 24px;
+    height: 24px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.chat-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+}
+
+.chat-form input[type="text"] {
+    flex: 1;
+    font-family: 'Vazirmatn', sans-serif;
+    border: none;
+    outline: none;
+    font-size: 0.95rem;
+    padding: 8px 4px;
+    text-align: right;
+    direction: rtl;
+}
+
+.image-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: background 0.2s, color 0.2s;
+}
+
+.image-btn:hover {
+    background: #f0f0f0;
+    color: var(--primary);
+}
+
+.send-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.send-btn:hover {
+    background: var(--primary-dark);
+}
+
+.send-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* ===== Scrollbar ===== */
+.chat-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-area::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-area::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.15);
+    border-radius: 3px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+    .app {
+        max-width: 100%;
+    }
+
+    .message {
+        max-width: 88%;
+    }
+
+    .recipes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .header h1 {
+        font-size: 1rem;
+    }
+
+    .login-card {
+        padding: 36px 24px;
+    }
+}
