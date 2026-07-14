@@ -346,20 +346,22 @@ body {
 }
 
 /* ===== Recipe Cards ===== */
-.recipes-container {
-    padding: 0 20px 16px;
+.recipes-wrapper {
+    margin-top: 10px;
+    animation: fadeIn 0.4s ease;
 }
 
-.recipes-container h3 {
+.recipes-wrapper h3 {
     font-size: 0.95rem;
     color: var(--text-light);
     margin-bottom: 12px;
     font-weight: 500;
+    padding: 0 4px;
 }
 
 .recipes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 14px;
 }
 
@@ -464,6 +466,30 @@ body {
     font-size: 0.78rem;
     color: var(--success);
     font-weight: 500;
+}
+
+.banner-missing {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+.banner-missing-label {
+    font-weight: 600;
+    color: var(--danger);
+    flex-shrink: 0;
+}
+
+.banner-missing-items {
+    color: var(--text);
+}
+
+.banner-missing.banner-ready {
+    color: var(--success);
+    font-weight: 600;
 }
 
 /* ===== Input Area ===== */
@@ -584,10 +610,6 @@ body {
 
     .message {
         max-width: 88%;
-    }
-
-    .recipes-grid {
-        grid-template-columns: 1fr;
     }
 
     .header h1 {

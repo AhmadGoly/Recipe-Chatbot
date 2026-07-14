@@ -3,6 +3,7 @@ const API = "";
 let username = localStorage.getItem("chatbot_username") || "";
 let selectedFile = null;
 let recipeLocked = false;
+let chatEvents = [];
 
 // ===== DOM Elements =====
 const loginScreen = document.getElementById("login-screen");
@@ -16,10 +17,59 @@ const imageInput = document.getElementById("image-input");
 const imagePreview = document.getElementById("image-preview");
 const previewImg = document.getElementById("preview-img");
 const removeImage = document.getElementById("remove-image");
-const recipesContainer = document.getElementById("recipes-container");
 const recipeBanner = document.getElementById("recipe-banner");
 const resetBtn = document.getElementById("reset-btn");
 const sendBtn = document.getElementById("send-btn");
+
+// ===== History Cache =====
+function historyKey() {
+    return `chatbot_history_${username}`;
+}
+
+function saveHistory() {
+    try {
+        localStorage.setItem(historyKey(), JSON.stringify(chatEvents));
+    } catch {}
+}
+
+function loadHistory() {
+    try {
+        const raw = localStorage.getItem(historyKey());
+        if (!raw) return false;
+        chatEvents = JSON.parse(raw);
+        return chatEvents.length > 0;
+    } catch {
+        return false;
+    }
+}
+
+function clearHistory() {
+    chatEvents = [];
+    localStorage.removeItem(historyKey());
+}
+
+function replayHistory() {
+    for (const evt of chatEvents) {
+        switch (evt.type) {
+            case "message":
+                addMessage(evt.role, evt.content, false);
+                break;
+            case "image":
+                addUserImageMessageFromSrc(evt.dataUrl, false);
+                break;
+            case "ingredients":
+                addIngredientsPills(evt.items, false);
+                break;
+            case "recipes":
+                showRecipes(evt.items, false);
+                break;
+            case "banner":
+                showSelectedRecipeBanner(evt.recipe, false);
+                break;
+        }
+    }
+    scrollToBottom();
+}
 
 // ===== Init =====
 if (username) {
@@ -39,6 +89,14 @@ loginForm.addEventListener("submit", (e) => {
 function showApp() {
     loginScreen.classList.add("hidden");
     appEl.classList.remove("hidden");
+
+    const hasHistory = loadHistory();
+    if (hasHistory) {
+        const welcome = chatArea.querySelector(".welcome-message");
+        if (welcome) welcome.remove();
+        replayHistory();
+    }
+
     messageInput.focus();
 }
 
@@ -54,12 +112,11 @@ resetBtn.addEventListener("click", async () => {
         });
     } catch {}
 
+    clearHistory();
     chatArea.innerHTML = `
         <div class="welcome-message">
             <p>سلام! عکس مواد غذایی خود را بفرستید یا بنویسید چه چیزی در دسترس دارید تا بهترین دستورهای غذایی را پیشنهاد دهم.</p>
         </div>`;
-    recipesContainer.innerHTML = "";
-    recipesContainer.classList.add("hidden");
     recipeBanner.innerHTML = "";
     recipeBanner.classList.add("hidden");
     recipeLocked = false;
@@ -114,14 +171,13 @@ async function sendMessage() {
 
     // Show user message
     if (text) {
-        addMessage("user", text);
+        addMessage("user", text, true);
     }
     if (selectedFile) {
-        addUserImageMessage(selectedFile);
+        addUserImageMessage(selectedFile, true);
     }
 
     messageInput.value = "";
-    hideRecipes();
 
     // Build form data
     const formData = new FormData();
@@ -151,21 +207,26 @@ async function sendMessage() {
 
         // Bot text response
         if (data.response) {
-            addMessage("bot", data.response);
+            addMessage("bot", data.response, true);
         }
 
         // Ingredients
         if (data.ingredients && data.ingredients.length > 0) {
-            addIngredientsPills(data.ingredients);
+            addIngredientsPills(data.ingredients, true);
         }
 
         // Recipe cards (only when no recipe is locked)
         if (!recipeLocked && data.recipes && data.recipes.length > 0) {
-            showRecipes(data.recipes);
+            showRecipes(data.recipes, true);
+        }
+
+        // Update banner when recipe is locked
+        if (recipeLocked && data.recipes && data.recipes.length > 0) {
+            showSelectedRecipeBanner(data.recipes[0], true);
         }
     } catch (err) {
         typing.remove();
-        addMessage("bot", "خطایی رخ داد. لطفاً دوباره تلاش کنید.");
+        addMessage("bot", "خطایی رخ داد. لطفاً دوباره تلاش کنید.", true);
     }
 
     setSending(false);
@@ -173,7 +234,7 @@ async function sendMessage() {
 }
 
 // ===== DOM Builders =====
-function addMessage(role, text) {
+function addMessage(role, text, cache = true) {
     const div = document.createElement("div");
     div.className = `message ${role}`;
 
@@ -194,23 +255,42 @@ function addMessage(role, text) {
     div.appendChild(time);
     chatArea.appendChild(div);
     scrollToBottom();
+
+    if (cache) {
+        chatEvents.push({ type: "message", role, content: text });
+        saveHistory();
+    }
 }
 
-function addUserImageMessage(file) {
+function addUserImageMessage(file, cache = true) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const dataUrl = ev.target.result;
+        addUserImageMessageFromSrc(dataUrl, cache);
+    };
+    reader.readAsDataURL(file);
+}
+
+function addUserImageMessageFromSrc(dataUrl, cache = true) {
     const div = document.createElement("div");
     div.className = "message user";
 
     const img = document.createElement("img");
     img.className = "message-image";
-    img.src = URL.createObjectURL(file);
+    img.src = dataUrl;
     img.alt = "تصویر ارسالی";
 
     div.appendChild(img);
     chatArea.appendChild(div);
     scrollToBottom();
+
+    if (cache) {
+        chatEvents.push({ type: "image", dataUrl });
+        saveHistory();
+    }
 }
 
-function addIngredientsPills(ingredients) {
+function addIngredientsPills(ingredients, cache = true) {
     const section = document.createElement("div");
     section.className = "ingredients-section";
 
@@ -231,6 +311,11 @@ function addIngredientsPills(ingredients) {
     section.appendChild(pills);
     chatArea.appendChild(section);
     scrollToBottom();
+
+    if (cache) {
+        chatEvents.push({ type: "ingredients", items: ingredients });
+        saveHistory();
+    }
 }
 
 function addTypingIndicator() {
@@ -247,13 +332,17 @@ function addTypingIndicator() {
     return div;
 }
 
-function showRecipes(recipes) {
-    recipesContainer.innerHTML = "";
-    recipesContainer.classList.remove("hidden");
+let currentRecipeGrid = null;
+
+function showRecipes(recipes, cache = true) {
+    hideRecipes();
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "recipes-wrapper";
 
     const title = document.createElement("h3");
     title.textContent = "دستورهای پیشنهادی";
-    recipesContainer.appendChild(title);
+    wrapper.appendChild(title);
 
     const grid = document.createElement("div");
     grid.className = "recipes-grid";
@@ -325,29 +414,54 @@ function showRecipes(recipes) {
         grid.appendChild(card);
     });
 
-    recipesContainer.appendChild(grid);
+    wrapper.appendChild(grid);
+    chatArea.appendChild(wrapper);
+    currentRecipeGrid = wrapper;
     scrollToBottom();
+
+    if (cache) {
+        chatEvents.push({ type: "recipes", items: recipes });
+        saveHistory();
+    }
 }
 
 function hideRecipes() {
-    recipesContainer.innerHTML = "";
-    recipesContainer.classList.add("hidden");
+    if (currentRecipeGrid) {
+        currentRecipeGrid.remove();
+        currentRecipeGrid = null;
+    }
 }
 
-function showSelectedRecipeBanner(recipe) {
+function showSelectedRecipeBanner(recipe, cache = true) {
     recipeBanner.innerHTML = "";
     recipeBanner.classList.remove("hidden");
 
-    const available = (recipe.available_ingredients || []).length;
-    const missing = (recipe.missing_ingredients || []).length;
+    const missing = recipe.missing_ingredients || [];
+
+    let missingHtml = "";
+    if (missing.length > 0) {
+        missingHtml = `
+            <div class="banner-missing">
+                <span class="banner-missing-label">باید تهیه شود:</span>
+                <span class="banner-missing-items">${missing.join("، ")}</span>
+            </div>
+        `;
+    } else {
+        missingHtml = `<div class="banner-missing banner-ready">همه مواد آماده است!</div>`;
+    }
 
     recipeBanner.innerHTML = `
         <span class="banner-icon">&#127860;</span>
         <div class="banner-info">
             <span class="banner-name">${recipe.name}</span>
-            <span class="banner-details">${available} مواد موجود${missing > 0 ? ` · ${missing} مواد مورد نیاز` : " · همه مواد آماده است"}</span>
+            ${missingHtml}
         </div>
     `;
+
+    if (cache) {
+        chatEvents.push({ type: "banner", recipe });
+        saveHistory();
+    }
 }
 
 // ===== Select Recipe =====
@@ -369,9 +483,10 @@ async function selectRecipe(index) {
         const data = await res.json();
         recipeLocked = true;
         hideRecipes();
-        showSelectedRecipeBanner(data.recipe);
+        showSelectedRecipeBanner(data.recipe, true);
+        addMessage("bot", `دستور **«${data.recipe.name}»** انتخاب شد.\n\nحالا می‌توانید مواد لازم را آماده کنید یا سوالاتتان را بپرسید.`, true);
     } catch {
-        addMessage("bot", "خطا در انتخاب دستور. لطفاً دوباره تلاش کنید.");
+        addMessage("bot", "خطا در انتخاب دستور. لطفاً دوباره تلاش کنید.", true);
     }
 
     setSending(false);

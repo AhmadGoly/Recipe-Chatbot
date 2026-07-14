@@ -1,9 +1,11 @@
 import base64
 import time
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
@@ -39,6 +41,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response: Response = await call_next(request)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
+
+app.add_middleware(NoCacheMiddleware)
 
 SESSION_TTL = 3600  # 1 hour
 
@@ -222,6 +236,8 @@ async def reset(
     request: ResetConversationRequest,
 ):
     sessions.pop(request.username, None)
+    if hasattr(graph.checkpointer, "storage"):
+        graph.checkpointer.storage.pop(request.username, None)
 
     return ResetConversationResponse(
         success=True,
@@ -235,7 +251,8 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        app,
+        "main:app",
         host="0.0.0.0",
         port=12345,
+        reload=True,
     )

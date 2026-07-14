@@ -10,6 +10,24 @@ from prompts import (
 from state import AppState
 
 
+def build_ingredients_context(ingredients: list) -> str:
+    if not ingredients:
+        return "Current known ingredients: (none)"
+    names = [f"{i.name} ({i.count})" for i in ingredients]
+    return f"Current known ingredients:\n" + "\n".join(names)
+
+
+def merge_ingredients(state: AppState, result: ChatResponse):
+    for ing in result.added_ingredients:
+        if not any(existing.name == ing.name for existing in state["ingredients"]):
+            state["ingredients"].append(ing)
+
+    removed_names = set(result.removed_ingredients)
+    state["ingredients"] = [
+        i for i in state["ingredients"] if i.name not in removed_names
+    ]
+
+
 class Nodes:
     def __init__(self, llm):
         self.llm = llm
@@ -21,10 +39,13 @@ class Nodes:
         return "suggest_recipes"
 
     def suggest_recipes(self, state: AppState):
+        ingredients_context = build_ingredients_context(state["ingredients"])
+
         try:
             result: ChatResponse = self.llm.invoke(
                 [
                     SystemMessage(content=SUGGEST_RECIPES_PROMPT),
+                    SystemMessage(content=ingredients_context),
                     *state["all_messages"],
                 ]
             )
@@ -36,8 +57,10 @@ class Nodes:
                 ],
             }
 
+        merge_ingredients(state, result)
+
         return {
-            "ingredients": result.ingredients,
+            "ingredients": state["ingredients"],
             "suggested_recipes": result.recipes,
             "last_response": result.response,
             "all_messages": [
@@ -63,11 +86,14 @@ Missing ingredients:
 Only continue helping with THIS recipe.
 """
 
+        ingredients_context = build_ingredients_context(state["ingredients"])
+
         try:
             result: ChatResponse = self.llm.invoke(
                 [
                     SystemMessage(content=CONTINUE_RECIPE_PROMPT),
                     SystemMessage(content=recipe_context),
+                    SystemMessage(content=ingredients_context),
                     *state["all_messages"],
                 ]
             )
@@ -79,10 +105,12 @@ Only continue helping with THIS recipe.
                 ],
             }
 
+        merge_ingredients(state, result)
+
         selected_recipe = result.recipes[0] if result.recipes else recipe
 
         return {
-            "ingredients": result.ingredients,
+            "ingredients": state["ingredients"],
             "selected_recipe": selected_recipe,
             "last_response": result.response,
             "all_messages": [

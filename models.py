@@ -22,7 +22,17 @@ class ChatResponse(BaseModel):
 
     ingredients: list[Ingredient] = Field(
         default_factory=list,
-        description="All detected edible ingredients"
+        description="Full current ingredient list (populated by backend, not LLM)"
+    )
+
+    added_ingredients: list[Ingredient] = Field(
+        default_factory=list,
+        description="New ingredients detected in this message that are NOT already in the current list"
+    )
+
+    removed_ingredients: list[str] = Field(
+        default_factory=list,
+        description="Names of ingredients that should be removed (user no longer has them)"
     )
 
     recipes: list[Recipe] = Field(
