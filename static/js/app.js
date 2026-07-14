@@ -379,9 +379,9 @@ async function selectRecipe(index) {
 
 // ===== Helpers =====
 function scrollToBottom() {
-    requestAnimationFrame(() => {
+    setTimeout(() => {
         chatArea.scrollTop = chatArea.scrollHeight;
-    });
+    }, 50);
 }
 
 function setSending(busy) {
