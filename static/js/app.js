@@ -1,6 +1,6 @@
 const API = "";
 
-let username = localStorage.getItem("chatbot_username") || "";
+let username = "";
 let selectedFile = null;
 let recipeLocked = false;
 let chatEvents = [];
@@ -49,6 +49,7 @@ function clearHistory() {
 }
 
 function replayHistory() {
+    recipeLocked = false;
     for (const evt of chatEvents) {
         switch (evt.type) {
             case "message":
@@ -64,6 +65,7 @@ function replayHistory() {
                 showRecipes(evt.items, false);
                 break;
             case "banner":
+                recipeLocked = true;
                 showSelectedRecipeBanner(evt.recipe, false);
                 break;
         }
@@ -72,9 +74,7 @@ function replayHistory() {
 }
 
 // ===== Init =====
-if (username) {
-    showApp();
-}
+// Always show login screen on page load
 
 // ===== Login =====
 loginForm.addEventListener("submit", (e) => {
@@ -82,7 +82,6 @@ loginForm.addEventListener("submit", (e) => {
     const name = loginInput.value.trim();
     if (!name) return;
     username = name;
-    localStorage.setItem("chatbot_username", username);
     showApp();
 });
 
