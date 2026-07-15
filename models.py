@@ -60,3 +60,8 @@ class ResetConversationRequest(BaseModel):
 
 class ResetConversationResponse(BaseModel):
     success: bool
+
+
+class UpdateIngredientsRequest(BaseModel):
+    username: str
+    ingredients: list[Ingredient] = Field(default_factory=list)

@@ -18,6 +18,7 @@ from models import (
     ResetConversationResponse,
     SelectRecipeRequest,
     SelectRecipeResponse,
+    UpdateIngredientsRequest,
 )
 
 from state import AppState
@@ -226,6 +227,19 @@ async def select_recipe(
         success=True,
         recipe=selected_recipe,
     )
+
+
+@app.post(
+    "/update_ingredients",
+    response_model=ChatResponse,
+)
+async def update_ingredients(
+    request: UpdateIngredientsRequest,
+):
+    state = get_state(request.username)
+    state["ingredients"] = request.ingredients
+    sessions[request.username] = (state, time.time())
+    return build_response(state)
 
 
 @app.post(

@@ -553,12 +553,39 @@ body {
 }
 
 .ing-qty {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    background: var(--bg-gradient-start);
-    padding: 2px 8px;
-    border-radius: 10px;
-    border: 1px solid rgba(2, 136, 209, 0.05);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    min-width: 15px;
+    text-align: center;
+}
+
+.ing-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.qty-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(2, 136, 209, 0.15);
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.qty-btn:hover {
+    background: var(--primary);
+    color: var(--white);
+    border-color: var(--primary);
 }
 
 .delete-ing-btn {

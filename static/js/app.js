@@ -495,17 +495,46 @@ manualIngForm.addEventListener("submit", (e) => {
 
     manualIngInput.value = "";
     drawIngredientsPanel();
-    saveHistory();
+    syncIngredientsWithBackend();
 
     // Animate and notify via ripple
     triggerRipple(window.innerWidth - 150, window.innerHeight / 2);
 });
 
+// Sync ingredients with backend asynchronously
+async function syncIngredientsWithBackend() {
+    saveHistory();
+    try {
+        const res = await fetch(`${API}/update_ingredients`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: username,
+                ingredients: activeIngredients
+            }),
+        });
+        if (!res.ok) {
+            console.error("Failed to sync ingredients with backend");
+        }
+    } catch (err) {
+        console.error("Error syncing ingredients:", err);
+    }
+}
+
 // Delete manual ingredient action
 function deleteIngredient(index) {
     activeIngredients.splice(index, 1);
     drawIngredientsPanel();
-    saveHistory();
+    syncIngredientsWithBackend();
+}
+
+function changeIngredientCount(index, delta) {
+    activeIngredients[index].count += delta;
+    if (activeIngredients[index].count <= 0) {
+        activeIngredients.splice(index, 1);
+    }
+    drawIngredientsPanel();
+    syncIngredientsWithBackend();
 }
 
 // ===== Rendering UI Lists =====
@@ -538,14 +567,27 @@ function drawIngredientsPanel() {
             <div class="ing-details">
                 <span class="ing-dot"></span>
                 <span class="ing-name">${ing.name}</span>
-                <span class="ing-qty">${ing.count} عدد</span>
             </div>
-            <button class="delete-ing-btn" title="حذف">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+            <div class="ing-controls">
+                <button class="qty-btn minus-btn" title="کاهش">-</button>
+                <span class="ing-qty">${ing.count}</span>
+                <button class="qty-btn plus-btn" title="افزایش">+</button>
+                <button class="delete-ing-btn" title="حذف">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
         `;
+
+        // Event listeners for quantity modification
+        item.querySelector(".minus-btn").addEventListener("click", () => {
+            changeIngredientCount(index, -1);
+        });
+
+        item.querySelector(".plus-btn").addEventListener("click", () => {
+            changeIngredientCount(index, 1);
+        });
 
         // Delete trigger hook
         item.querySelector(".delete-ing-btn").addEventListener("click", () => {
